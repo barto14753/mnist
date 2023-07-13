@@ -1,6 +1,5 @@
 import tkinter as tk
 import tkinter.font as tkfont
-from tkinter import ttk
 import torch
 import torch.nn.functional as F
 from model import Net
@@ -19,11 +18,16 @@ window.title("Mnist")
 # state
 state = {}
 
+# theme
+BUTTON_COLOR = "blue"
+BG_COLOR = "white"
+
 # model
 gpu = torch.device("cuda")
 model_state = torch.load("mnist_cnn.pt", map_location=torch.device('cuda'))
 model = Net()
 model.load_state_dict(model_state)
+
 
 # set the width and height of the window
 def resize_window():
@@ -35,63 +39,68 @@ def resize_window():
     y_coordinate = int((screen_height / 2) - (window_height / 2))
     window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
 
+
 BOARD = []
+
 
 def get_button(x, y):
     row = y // BUTTON_SIZE
     column = x // BUTTON_SIZE
     return BOARD[row][column]
 
+
 def on_left_click(event):
     x = window.winfo_pointerx() - window.winfo_rootx()
     y = window.winfo_pointery() - window.winfo_rooty()
     if x < 0 or y < 0:
         return
-    print("Mouse clicked at position:", x, y)
     button = get_button(x, y)
-    button.config(bg="blue")
-    calculate()
+    button.config(bg=BUTTON_COLOR)
+    show_prediction()
+
 
 def on_right_click(event):
     x = window.winfo_pointerx() - window.winfo_rootx()
     y = window.winfo_pointery() - window.winfo_rooty()
     if x < 0 or y < 0:
         return
-    print("Mouse clicked at position:", x, y)
     button = get_button(x, y)
-    button.config(bg="green")
-    calculate()
+    button.config(bg=BG_COLOR)
+    show_prediction()
+
 
 def clear():
     for row in BOARD:
         for button in row:
-            button.config(bg="green")
+            button.config(bg=BG_COLOR)
     state["result_label"].config(text="")
 
-def calculate():
+
+def show_prediction():
     tensor = []
     for row in BOARD:
         r = []
         for button in row:
-            bit = 0.0 if button.cget("background") == "green" else 1.0
+            bit = 0.0 if button.cget("background") == BG_COLOR else 1.0
             r.append(bit)
         tensor.append(r)
     tensor = torch.Tensor([[tensor]])
-    prediction =  predict(tensor)
+    prediction = predict(tensor)
     state["result_label"].config(text=str(prediction))
 
+
 def predict(tensor):
-    print(tensor.shape)
     result_tensor = model(tensor)
     probabilities = F.softmax(result_tensor, dim=1)
     predicted_class = torch.argmax(probabilities, dim=1)
     return predicted_class[0].item()
 
+
 def create_board():
     for i in range(ROWS):
         row = []
         for j in range(COLUMNS):
-            button = tk.Frame(window, bg="green")
+            button = tk.Frame(window, bg=BG_COLOR)
             button.config(width=BUTTON_SIZE, height=BUTTON_SIZE)
             button.grid(row=i, column=j)
             button.bind("<Button-1>", on_left_click)
@@ -103,23 +112,23 @@ def create_board():
             row.append(button)
         BOARD.append(row)
 
+
 def create_buttons():
     custom_font = tkfont.Font(family="Arial", size=16)
     custom_large_font = tkfont.Font(family="Arial", size=36)
     custom_huge_font = tkfont.Font(family="Arial", size=64)
-    title_label = tk.Label(window, text ="Mnist", font=custom_large_font)
+
+    title_label = tk.Label(window, text="Mnist", font=custom_large_font)
     title_label.place(x=675, y=25)
-    recognize_button = tk.Button(window, text ="RECOGNIZE", bg="green", font=custom_font, command=calculate)
-    recognize_button.config(width=12)
-    recognize_button.place(x=650, y=100)
-    clear_button = tk.Button(window, text ="CLEAR", bg="red", font=custom_font, command=clear)
+    clear_button = tk.Button(window, text="CLEAR", bg="red", font=custom_font, command=clear)
     clear_button.config(width=12)
     clear_button.place(x=650, y=150)
-    predition_label = tk.Label(window, text ="Prediction", font=custom_font)
-    predition_label.place(x=675, y=225)
-    result_label = tk.Label(window, text = "", font=custom_huge_font)
-    result_label.place(x=700, y=250)
+    prediction_label = tk.Label(window, text="Prediction", font=custom_font)
+    prediction_label.place(x=685, y=225)
+    result_label = tk.Label(window, text="", font=custom_huge_font)
+    result_label.place(x=710, y=250)
     state["result_label"] = result_label
+
 
 def main():
     window.resizable(False, False)
@@ -128,6 +137,6 @@ def main():
     create_buttons()
     window.mainloop()
 
+
 if __name__ == "__main__":
     main()
-    
