@@ -13,4 +13,4 @@ python3 app.py
 
 ## Demo
 
-[Demo.webm](https://github.com/barto14753/mnist/assets/56938330/93a547e6-444b-4845-abe5-7a35c834e3a1)
+[Demo.webm](https://github.com/barto14753/mnist/assets/56938330/b9563c76-e34d-4ef0-88a8-16eaa05eab81)
